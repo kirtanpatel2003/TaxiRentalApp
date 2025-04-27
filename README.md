@@ -8,15 +8,15 @@ This is a full-stack web application for managing taxi rentals, built using:
 
 ## Project Structure
 
-/taxi-frontend        (React.js frontend)
-/taxi-backend         (Node.js backend)
-/backend/config/taxi_rental_db.sql  (SQL file to setup database)
+  /taxi-frontend        (React.js frontend) \
+  /taxi-backend         (Node.js backend) \
+  /backend/config/taxi_rental_db.sql  (SQL file to setup database)
 
 ## How to Setup and Run Locally
 
 ### 1. Clone the Repository
 
-git clone https://github.com/kirtanpatel2003/TaxiRentalApp.git
+git clone https://github.com/kirtanpatel2003/TaxiRentalApp.git \
 cd TaxiRentalApp
 
 ### 2. Setup PostgreSQL Database
@@ -33,14 +33,14 @@ Inside pgAdmin:
 
 OR via command line:
 
-psql -U your_username -d taxi_rental_db -f taxi-backend/config/taxi_rental_db.sql
+  _psql -U your_username -d taxi_rental_db -f taxi-backend/config/taxi_rental_db.sql_
 
 This will create the necessary tables and insert initial sample data.
 
 ### 3. Start Backend Server
 
-cd taxi-backend
-npm install
+cd taxi-backend \
+npm install \
 npx nodemon server.js
 
 Backend will run on:
@@ -49,8 +49,8 @@ http://localhost:1303/
 
 ### 4. Start Frontend Server
 
-cd taxi-frontend
-npm install
+cd taxi-frontend \
+npm install \
 npm start
 
 If using Node.js version 17 or higher, update your package.json "start" script to:
