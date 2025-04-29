@@ -7,7 +7,7 @@ const db = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 1303;
-const managerRoutes = require('./routes/manager');
+const registerRoutes = require('./routes/register');
 
 
 
@@ -24,7 +24,7 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/api', managerRoutes);
+app.use('/api', registerRoutes);
 
 app.get('/', (req, res) => {
   res.send('Taxi Rental App Backend Running 🚕');
