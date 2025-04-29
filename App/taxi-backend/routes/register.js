@@ -128,4 +128,26 @@ router.post('/login-client', async (req, res) => {
   }
 });
 
+
+// Driver login route
+router.post('/login-driver', async (req, res) => {
+  const { name } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ message: 'Driver name is required.' });
+  }
+
+  try {
+    const driver = await db.query('SELECT * FROM driver WHERE name = $1', [name]);
+    if (driver.rows.length === 0) {
+      return res.status(400).json({ message: 'Driver not found. Please register first.' });
+    }
+
+    res.status(200).json({ message: `Welcome, ${driver.rows[0].name}!`, driver: driver.rows[0] });
+  } catch (error) {
+    console.error('Error during driver login:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 module.exports = router;

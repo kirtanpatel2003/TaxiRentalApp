@@ -6,10 +6,11 @@ import Login from './pages/Login';
 import RegisterUser from './pages/RegisterUser';
 import ManagerDashboard from './pages/ManagerDashboard';
 import ClientDashboard from './pages/ClientDashboard';
+import DriverDashboard from './pages/DriverDashboard';
 
 function LayoutWrapper({ children }) {
   const location = useLocation();
-  const showNavbar = location.pathname === '/manager-dashboard' || location.pathname === '/client-dashboard';
+  const showNavbar = location.pathname === '/manager-dashboard' || location.pathname === '/client-dashboard' || location.pathname === '/driver-dashboard';
 
   return (
     <>
@@ -29,6 +30,7 @@ function App() {
           <Route path="/register" element={<RegisterUser />} />
           <Route path="/manager-dashboard" element={<ManagerDashboard />} />
           <Route path="/client-dashboard" element={<ClientDashboard />} />
+          <Route path="/driver-dashboard" element={<DriverDashboard />} />
         </Routes>
       </LayoutWrapper>
     </Router>
