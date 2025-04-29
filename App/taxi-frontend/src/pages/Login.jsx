@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const [role, setRole] = useState('manager');
   const [ssn, setSSN] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,6 +20,13 @@ function Login() {
       setMessage(response.data.message);
       setSSN('');
       setEmail('');
+
+      const name = response.data.manager?.name || response.data.client?.name || response.data.name;
+      if (role === 'manager') {
+        navigate('/manager-dashboard', { state: { name } });
+      } else {
+        navigate('/client-dashboard', { state: { name } });
+      }
     } catch (error) {
       if (error.response) {
         setMessage(error.response.data.message);
