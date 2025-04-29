@@ -1,12 +1,18 @@
-import React from 'react';
+import { Button, Container } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
-function Home() {
+export default function Home() {
   return (
-    <div className="text-center mt-5">
-      <h1>Welcome to Taxi Rental Service 🚖</h1>
-      <p>Find a ride. Book a driver. Ride safely!</p>
-    </div>
+    <Container className="text-center mt-5">
+      <h1>Welcome to Taxi Rental</h1>
+      <div className="d-flex justify-content-center gap-3 mt-4">
+        <Link to="/login">
+          <Button variant="primary">Login</Button>
+        </Link>
+        <Link to="/register">
+          <Button variant="secondary">Register</Button>
+        </Link>
+      </div>
+    </Container>
   );
 }
-
-export default Home;
