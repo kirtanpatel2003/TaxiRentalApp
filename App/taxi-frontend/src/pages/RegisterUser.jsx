@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Button, Container } from 'react-bootstrap';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 function RegisterUser() {
   const [role, setRole] = useState('manager');
@@ -226,6 +227,9 @@ function RegisterUser() {
           Register
         </Button>
       </Form>
+      <div className="text-center mt-3">
+        <Link to="/" className="btn btn-outline-secondary">Back to Home</Link>
+      </div>
     </Container>
   );
 }
