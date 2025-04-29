@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db'); // path to your db.js
+const db = require('../config/db');
 
 router.post('/register-manager', async (req, res) => {
   const { name, ssn, email } = req.body;
@@ -62,14 +62,12 @@ router.post('/register-client', async (req, res) => {
       return res.status(400).json({ message: 'Client with this email already exists!' });
     }
 
-    // Insert client
     const clientResult = await db.query(
       'INSERT INTO client (name, email) VALUES ($1, $2) RETURNING client_id',
       [name, email]
     );
     const clientId = clientResult.rows[0].client_id;
 
-    // Insert addresses and client-address mapping
     for (const addr of addresses) {
       const addressRes = await db.query(
         'INSERT INTO address (road_name, number, city) VALUES ($1, $2, $3) RETURNING address_id',
@@ -83,7 +81,6 @@ router.post('/register-client', async (req, res) => {
       );
     }
 
-    // Insert credit card payment address
     const cardAddrParts = creditCard.address.split(',');
     if (cardAddrParts.length !== 3) {
       return res.status(400).json({ message: 'Invalid credit card address format. Use "road,number,city"' });
@@ -97,7 +94,6 @@ router.post('/register-client', async (req, res) => {
     );
     const cardAddressId = cardAddrRes.rows[0].address_id;
 
-    // Insert credit card
     await db.query(
       'INSERT INTO creditcard (card_number, client_id, address_id) VALUES ($1, $2, $3)',
       [creditCard.card_number, clientId, cardAddressId]
@@ -112,7 +108,6 @@ router.post('/register-client', async (req, res) => {
 });
 
 
-// Client login route
 router.post('/login-client', async (req, res) => {
   const { email } = req.body;
 
