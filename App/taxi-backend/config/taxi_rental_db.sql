@@ -1,74 +1,102 @@
---
--- PostgreSQL database dump
---
+-- Drop tables if they already exist
 
--- Dumped from database version 17.4 (Homebrew)
--- Dumped by pg_dump version 17.0
+DROP TABLE IF EXISTS CanDrive;
+DROP TABLE IF EXISTS Rent;
+DROP TABLE IF EXISTS Review;
+DROP TABLE IF EXISTS CreditCard;
+DROP TABLE IF EXISTS ClientAddress;
+DROP TABLE IF EXISTS Driver;
+DROP TABLE IF EXISTS Client;
+DROP TABLE IF EXISTS Manager;
+DROP TABLE IF EXISTS Model;
+DROP TABLE IF EXISTS Car;
+DROP TABLE IF EXISTS Address;
 
--- Started on 2025-04-27 14:15:37 CDT
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
-
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
-
---
--- TOC entry 217 (class 1259 OID 16399)
--- Name: manager; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.manager (
-    name text NOT NULL,
-    ssn text NOT NULL,
-    email text NOT NULL
+-- 1. Address
+CREATE TABLE Address (
+    address_id SERIAL PRIMARY KEY,
+    road_name VARCHAR(100) NOT NULL,
+    number VARCHAR(10) NOT NULL,
+    city VARCHAR(50) NOT NULL
 );
 
+-- 2. Manager
+CREATE TABLE Manager (
+    ssn VARCHAR(9) PRIMARY KEY, -- 9 digits only
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL
+);
 
-ALTER TABLE public.manager OWNER TO postgres;
+-- 3. Client
+CREATE TABLE Client (
+    client_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
 
---
--- TOC entry 3791 (class 0 OID 16399)
--- Dependencies: 217
--- Data for Name: manager; Type: TABLE DATA; Schema: public; Owner: postgres
---
+-- 4. Driver
+CREATE TABLE Driver (
+    driver_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    address_id INTEGER NOT NULL REFERENCES Address(address_id)
+);
 
-COPY public.manager (name, ssn, email) FROM stdin;
-Kirtan	123456789	kirtan@test.com
-\.
+-- 5. ClientAddress (linking Client and Address)
+CREATE TABLE ClientAddress (
+    client_id INTEGER NOT NULL REFERENCES Client(client_id),
+    address_id INTEGER NOT NULL REFERENCES Address(address_id),
+    PRIMARY KEY (client_id, address_id)
+);
 
+-- 6. CreditCard (includes payment address directly)
+CREATE TABLE CreditCard (
+    card_number VARCHAR(20) PRIMARY KEY,
+    client_id INTEGER NOT NULL REFERENCES Client(client_id),
+    address_id INTEGER NOT NULL REFERENCES Address(address_id)
+);
 
---
--- TOC entry 3643 (class 2606 OID 16407)
--- Name: manager manager_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
+-- 7. Review (corrected PK)
+CREATE TABLE Review (
+    review_id SERIAL,
+    message TEXT NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 0 AND 5),
+    driver_id INTEGER NOT NULL REFERENCES Driver(driver_id),
+    client_id INTEGER REFERENCES Client(client_id), -- Optional for anonymous
+    PRIMARY KEY (driver_id, review_id)
+);
 
-ALTER TABLE ONLY public.manager
-    ADD CONSTRAINT manager_email_key UNIQUE (email);
+-- 8. Car
+CREATE TABLE Car (
+    car_id SERIAL PRIMARY KEY,
+    brand VARCHAR(100) NOT NULL
+);
 
+-- 9. Model (weak entity with composite PK)
+CREATE TABLE Model (
+    model_id SERIAL,
+    color VARCHAR(50) NOT NULL,
+    transmission VARCHAR(20) NOT NULL,
+    year INT NOT NULL,
+    car_id INTEGER NOT NULL REFERENCES Car(car_id),
+    PRIMARY KEY (model_id, car_id)
+);
 
---
--- TOC entry 3645 (class 2606 OID 16405)
--- Name: manager manager_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
+-- 10. Rent (everything together)
+CREATE TABLE Rent (
+    rent_id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    client_id INTEGER NOT NULL REFERENCES Client(client_id),
+    driver_id INTEGER NOT NULL REFERENCES Driver(driver_id),
+    model_id INTEGER NOT NULL,
+    car_id INTEGER NOT NULL,
+    FOREIGN KEY (model_id, car_id) REFERENCES Model(model_id, car_id)
+);
 
-ALTER TABLE ONLY public.manager
-    ADD CONSTRAINT manager_pkey PRIMARY KEY (ssn);
-
-
--- Completed on 2025-04-27 14:15:37 CDT
-
---
--- PostgreSQL database dump complete
---
-
+-- 11. CanDrive (driver drives models)
+CREATE TABLE CanDrive (
+    driver_id INTEGER NOT NULL REFERENCES Driver(driver_id),
+    model_id INTEGER NOT NULL,
+    car_id INTEGER NOT NULL,
+    PRIMARY KEY (driver_id, model_id, car_id),
+    FOREIGN KEY (model_id, car_id) REFERENCES Model(model_id, car_id)
+);
