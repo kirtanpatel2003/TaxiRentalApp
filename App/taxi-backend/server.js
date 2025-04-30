@@ -10,6 +10,8 @@ const PORT = process.env.PORT || 1303;
 const registerRoutes = require('./routes/register');
 const managerRoutes = require('./routes/manager');
 const clientRoutes = require('./routes/client');
+const driverRoutes = require('./routes/driver');
+
 
 
 app.use(cors({
@@ -28,6 +30,8 @@ app.use(passport.session());
 app.use('/api', registerRoutes);
 app.use('/api', managerRoutes);
 app.use('/api', clientRoutes);
+app.use('/api', driverRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('Taxi Rental App Backend Running 🚕');
