@@ -8,6 +8,7 @@ function ManagerDashboard({ name = "Manager" }) {
   // Manage Cars state
   const [carBrand, setCarBrand] = useState('');
   const [removeCarId, setRemoveCarId] = useState('');
+  const [allCars, setAllCars] = useState([]);
 
   // Manage Models state
   const [modelColor, setModelColor] = useState('');
@@ -16,6 +17,7 @@ function ManagerDashboard({ name = "Manager" }) {
   const [modelCarId, setModelCarId] = useState('');
   const [removeModelId, setRemoveModelId] = useState('');
   const [removeModelCarId, setRemoveModelCarId] = useState('');
+  const [allModels, setAllModels] = useState([]);
 
   // Manage Drivers state
   const [driverName, setDriverName] = useState('');
@@ -26,6 +28,11 @@ function ManagerDashboard({ name = "Manager" }) {
   const [topK, setTopK] = useState('');
   const [clientCity, setClientCity] = useState('');
   const [driverCity, setDriverCity] = useState('');
+
+  const [topKClients, setTopKClients] = useState([]);
+  const [carModelUsage, setCarModelUsage] = useState([]);
+  const [driverPerformance, setDriverPerformance] = useState([]);
+  const [cityMatchResults, setCityMatchResults] = useState([]);
 
   const handleInsertCar = async (e) => {
     e.preventDefault();
@@ -57,7 +64,7 @@ function ManagerDashboard({ name = "Manager" }) {
         color: modelColor,
         transmission: modelTransmission,
         year: Number(modelYear),
-        carId: Number(modelCarId),
+        car_id: Number(modelCarId),
       });
       alert('Model inserted successfully');
       setModelColor('');
@@ -73,8 +80,8 @@ function ManagerDashboard({ name = "Manager" }) {
     e.preventDefault();
     try {
       await axios.post('http://localhost:1303/api/remove-model', {
-        modelId: Number(removeModelId),
-        carId: Number(removeModelCarId),
+        model_id: Number(removeModelId),
+        car_id: Number(removeModelCarId),
       });
       alert('Model removed successfully');
       setRemoveModelId('');
@@ -113,8 +120,8 @@ function ManagerDashboard({ name = "Manager" }) {
   const handleTopKClients = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/data/top-k-clients', { k: Number(topK) });
-      alert('Top-k clients: ' + JSON.stringify(response.data));
+      const response = await axios.post('http://localhost:1303/api/data/top-k-clients', { k: Number(topK) });
+      setTopKClients(response.data);
       setTopK('');
     } catch (error) {
       alert('Failed to get top-k clients');
@@ -123,8 +130,8 @@ function ManagerDashboard({ name = "Manager" }) {
 
   const handleCarModelUsage = async () => {
     try {
-      const response = await axios.get('/api/data/car-model-usage');
-      alert('Car Model Usage Report: ' + JSON.stringify(response.data));
+      const response = await axios.get('http://localhost:1303/api/data/car-model-usage');
+      setCarModelUsage(response.data);
     } catch (error) {
       alert('Failed to generate car model usage report');
     }
@@ -132,8 +139,8 @@ function ManagerDashboard({ name = "Manager" }) {
 
   const handleDriverPerformance = async () => {
     try {
-      const response = await axios.get('/api/data/driver-performance');
-      alert('Driver Performance Report: ' + JSON.stringify(response.data));
+      const response = await axios.get('http://localhost:1303/api/data/driver-performance');
+      setDriverPerformance(response.data);
     } catch (error) {
       alert('Failed to generate driver performance report');
     }
@@ -142,11 +149,11 @@ function ManagerDashboard({ name = "Manager" }) {
   const handleClientDriverCityMatch = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/data/client-driver-city-match', {
+      const response = await axios.post('http://localhost:1303/api/data/client-driver-city-match', {
         clientCity,
         driverCity,
       });
-      alert('Client-Driver City Match: ' + JSON.stringify(response.data));
+      setCityMatchResults(response.data);
       setClientCity('');
       setDriverCity('');
     } catch (error) {
@@ -183,6 +190,33 @@ function ManagerDashboard({ name = "Manager" }) {
               />
               <Button type="submit" className="btn-danger">Remove</Button>
             </form>
+            <h4 className="mt-4">All Cars</h4>
+            <Button className="btn-outline-info mb-3" onClick={async () => {
+              try {
+                const response = await axios.get('http://localhost:1303/api/all-cars');
+                setAllCars(response.data);
+              } catch (error) {
+                alert('Failed to fetch cars');
+              }
+            }}>Load Cars</Button>
+            {allCars.length > 0 && (
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Car ID</th>
+                    <th>Brand</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allCars.map((car, idx) => (
+                    <tr key={idx}>
+                      <td>{car.car_id}</td>
+                      <td>{car.brand}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         );
       case 'Manage Models':
@@ -244,6 +278,39 @@ function ManagerDashboard({ name = "Manager" }) {
               />
               <Button type="submit" className="btn-danger">Remove</Button>
             </form>
+            <h4 className="mt-4">All Models</h4>
+            <Button className="btn-outline-info mb-3" onClick={async () => {
+              try {
+                const response = await axios.get('http://localhost:1303/api/all-models');
+                setAllModels(response.data);
+              } catch (error) {
+                alert('Failed to fetch models');
+              }
+            }}>Load Models</Button>
+            {allModels.length > 0 && (
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Model ID</th>
+                    <th>Color</th>
+                    <th>Transmission</th>
+                    <th>Year</th>
+                    <th>Car ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allModels.map((model, idx) => (
+                    <tr key={idx}>
+                      <td>{model.model_id}</td>
+                      <td>{model.color}</td>
+                      <td>{model.transmission}</td>
+                      <td>{model.year}</td>
+                      <td>{model.car_id}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         );
       case 'Manage Drivers':
@@ -281,6 +348,33 @@ function ManagerDashboard({ name = "Manager" }) {
               />
               <Button type="submit" className="btn-danger">Remove</Button>
             </form>
+            <h4 className="mt-4">All Drivers</h4>
+            <Button className="btn-outline-info mb-3" onClick={async () => {
+              try {
+                const response = await axios.get('http://localhost:1303/api/all-drivers');
+                setDriverPerformance(response.data); // reuse state for simplicity
+              } catch (error) {
+                alert('Failed to fetch drivers');
+              }
+            }}>Load Drivers</Button>
+            {driverPerformance.length > 0 && (
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Address</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {driverPerformance.map((driver, idx) => (
+                    <tr key={idx}>
+                      <td>{driver.name}</td>
+                      <td>{driver.address}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         );
       case 'Data Query':
@@ -299,10 +393,67 @@ function ManagerDashboard({ name = "Manager" }) {
               />
               <Button type="submit" className="btn-primary">Submit</Button>
             </form>
+            {topKClients.length > 0 && (
+              <table className="table mt-3">
+                <thead><tr><th>Name</th><th>Email</th></tr></thead>
+                <tbody>
+                  {topKClients.map((client, index) => (
+                    <tr key={index}>
+                      <td>{client.name}</td>
+                      <td>{client.email}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
             <h4>Car Model Usage</h4>
             <Button className="btn-outline-info w-100 mb-3" onClick={handleCarModelUsage}>Generate Report</Button>
+            {carModelUsage.length > 0 && (
+              <table className="table mt-3">
+                <thead>
+                  <tr>
+                    <th>Car Brand</th>
+                    <th>Model Color</th>
+                    <th>Transmission</th>
+                    <th>Year</th>
+                    <th>Usage Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {carModelUsage.map((usage, index) => (
+                    <tr key={index}>
+                      <td>{usage.brand}</td>
+                      <td>{usage.color}</td>
+                      <td>{usage.transmission}</td>
+                      <td>{usage.year}</td>
+                      <td>{usage.usageCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
             <h4>Driver Performance</h4>
             <Button className="btn-outline-info w-100 mb-3" onClick={handleDriverPerformance}>Generate Report</Button>
+            {driverPerformance.length > 0 && (
+              <table className="table mt-3">
+                <thead>
+                  <tr>
+                    <th>Driver Name</th>
+                    <th>Trips Completed</th>
+                    <th>Rating</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {driverPerformance.map((driver, index) => (
+                    <tr key={index}>
+                      <td>{driver.name}</td>
+                      <td>{driver.tripsCompleted}</td>
+                      <td>{driver.rating}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
             <h4>Client-Driver City Match</h4>
             <form onSubmit={handleClientDriverCityMatch}>
               <input
@@ -323,6 +474,28 @@ function ManagerDashboard({ name = "Manager" }) {
               />
               <Button type="submit" className="btn-primary">Submit</Button>
             </form>
+            {cityMatchResults.length > 0 && (
+              <table className="table mt-3">
+                <thead>
+                  <tr>
+                    <th>Client Name</th>
+                    <th>Driver Name</th>
+                    <th>Client City</th>
+                    <th>Driver City</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cityMatchResults.map((match, index) => (
+                    <tr key={index}>
+                      <td>{match.clientName}</td>
+                      <td>{match.driverName}</td>
+                      <td>{match.clientCity}</td>
+                      <td>{match.driverCity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         );
       default:
