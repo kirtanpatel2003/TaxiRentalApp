@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Form, Button, Container } from 'react-bootstrap';
+import { Form, Button, Container, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
 function RegisterUser() {
   const [role, setRole] = useState('manager');
+  const [message, setMessage] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     ssn: '',
@@ -12,11 +13,8 @@ function RegisterUser() {
     addresses: [{ road_name: '', number: '', city: '' }],
     creditCard: { card_number: '', address: '' }
   });
-  const [message, setMessage] = useState('');
 
-  const handleRoleChange = (e) => {
-    const newRole = e.target.value;
-    setRole(newRole);
+  const resetForm = () => {
     setFormData({
       name: '',
       ssn: '',
@@ -24,7 +22,12 @@ function RegisterUser() {
       addresses: [{ road_name: '', number: '', city: '' }],
       creditCard: { card_number: '', address: '' }
     });
+  };
+
+  const handleRoleChange = (e) => {
+    setRole(e.target.value);
     setMessage('');
+    resetForm();
   };
 
   const handleChange = (e) => {
@@ -32,21 +35,21 @@ function RegisterUser() {
   };
 
   const handleAddressChange = (index, e) => {
-    const newAddresses = [...formData.addresses];
-    newAddresses[index][e.target.name] = e.target.value;
-    setFormData({ ...formData, addresses: newAddresses });
+    const updated = [...formData.addresses];
+    updated[index][e.target.name] = e.target.value;
+    setFormData({ ...formData, addresses: updated });
   };
 
-  const handleAddAddress = () => {
+  const addAddress = () => {
     setFormData({
       ...formData,
       addresses: [...formData.addresses, { road_name: '', number: '', city: '' }]
     });
   };
 
-  const handleRemoveAddress = (index) => {
-    const newAddresses = formData.addresses.filter((_, i) => i !== index);
-    setFormData({ ...formData, addresses: newAddresses });
+  const removeAddress = (index) => {
+    const filtered = formData.addresses.filter((_, i) => i !== index);
+    setFormData({ ...formData, addresses: filtered });
   };
 
   const handleCreditCardChange = (e) => {
@@ -58,49 +61,40 @@ function RegisterUser() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (role === 'client') {
-      if (formData.addresses.length === 0 || formData.addresses.some(addr => !addr.road_name || !addr.number || !addr.city)) {
-        setMessage('Please provide at least one complete address.');
+      if (formData.addresses.length === 0 || formData.addresses.some(a => !a.road_name || !a.number || !a.city)) {
+        setMessage('Please fill out all address fields.');
         return;
       }
     }
+
     const endpoint = role === 'manager' ? '/api/register-manager' : '/api/register-client';
-    let payload;
-    if (role === 'manager') {
-      payload = formData;
-    } else {
-      payload = {
-        name: formData.name,
-        email: formData.email,
-        addresses: formData.addresses,
-        creditCard: formData.creditCard
-      };
-    }
+    const payload = role === 'manager'
+      ? formData
+      : {
+          name: formData.name,
+          email: formData.email,
+          addresses: formData.addresses,
+          creditCard: formData.creditCard
+        };
+
     try {
-      const response = await axios.post(`http://localhost:1303${endpoint}`, payload, { withCredentials: true });
-      setMessage(response.data.message);
-      setFormData({
-        name: '',
-        ssn: '',
-        email: '',
-        addresses: [{ road_name: '', number: '', city: '' }],
-        creditCard: { card_number: '', address: '' }
-      });
-    } catch (error) {
-      if (error.response) {
-        setMessage(error.response.data.message);
-      } else {
-        setMessage('Registration failed. Please try again.');
-      }
+      const res = await axios.post(`http://localhost:1303${endpoint}`, payload, { withCredentials: true });
+      setMessage(res.data.message);
+      resetForm();
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Registration failed. Please try again.');
     }
   };
 
   return (
-    <Container className="mt-5" style={{ maxWidth: '500px' }}>
-      <h2 className="text-center mb-4">Register {role.charAt(0).toUpperCase() + role.slice(1)}</h2>
-      {message && <div className="alert alert-info">{message}</div>}
+    <Container className="mt-5" style={{ maxWidth: '550px' }}>
+      <h2 className="text-center mb-4">Register as {role.charAt(0).toUpperCase() + role.slice(1)}</h2>
+      {message && <Alert variant="info">{message}</Alert>}
+
       <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3" controlId="formRole">
+        <Form.Group className="mb-3">
           <Form.Label>Register as:</Form.Label>
           <Form.Select value={role} onChange={handleRoleChange}>
             <option value="manager">Manager</option>
@@ -108,10 +102,9 @@ function RegisterUser() {
           </Form.Select>
         </Form.Group>
 
-        <Form.Group className="mb-3" controlId="formName">
-          <Form.Label>Name</Form.Label>
+        <Form.Group className="mb-3">
+          <Form.Label>Full Name</Form.Label>
           <Form.Control
-            type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
@@ -121,20 +114,19 @@ function RegisterUser() {
         </Form.Group>
 
         {role === 'manager' && (
-          <Form.Group className="mb-3" controlId="formSSN">
+          <Form.Group className="mb-3">
             <Form.Label>SSN</Form.Label>
             <Form.Control
-              type="text"
               name="ssn"
               value={formData.ssn}
               onChange={handleChange}
-              placeholder="Enter your SSN"
+              placeholder="Enter SSN"
               required
             />
           </Form.Group>
         )}
 
-        <Form.Group className="mb-4" controlId="formEmail">
+        <Form.Group className="mb-3">
           <Form.Label>Email</Form.Label>
           <Form.Control
             type="email"
@@ -148,60 +140,52 @@ function RegisterUser() {
 
         {role === 'client' && (
           <>
-            <Form.Label>Addresses</Form.Label>
+            <h5 className="mt-4">Addresses</h5>
             {formData.addresses.map((address, index) => (
-              <div key={index} className="mb-3 border rounded p-3">
-                <Form.Group className="mb-2" controlId={`roadName-${index}`}>
+              <div key={index} className="p-3 border rounded mb-3">
+                <Form.Group className="mb-2">
                   <Form.Label>Road Name</Form.Label>
                   <Form.Control
-                    type="text"
                     name="road_name"
                     value={address.road_name}
                     onChange={(e) => handleAddressChange(index, e)}
-                    placeholder="Enter road name"
+                    placeholder="e.g. Elm Street"
                     required
                   />
                 </Form.Group>
-                <Form.Group className="mb-2" controlId={`number-${index}`}>
+                <Form.Group className="mb-2">
                   <Form.Label>Number</Form.Label>
                   <Form.Control
-                    type="text"
                     name="number"
                     value={address.number}
                     onChange={(e) => handleAddressChange(index, e)}
-                    placeholder="Enter number"
+                    placeholder="e.g. 101"
                     required
                   />
                 </Form.Group>
-                <Form.Group className="mb-2" controlId={`city-${index}`}>
+                <Form.Group className="mb-2">
                   <Form.Label>City</Form.Label>
                   <Form.Control
-                    type="text"
                     name="city"
                     value={address.city}
                     onChange={(e) => handleAddressChange(index, e)}
-                    placeholder="Enter city"
+                    placeholder="e.g. Chicago"
                     required
                   />
                 </Form.Group>
                 {formData.addresses.length > 1 && (
-                  <Button variant="danger" size="sm" onClick={() => handleRemoveAddress(index)}>
-                    Remove Address
+                  <Button variant="outline-danger" size="sm" onClick={() => removeAddress(index)}>
+                    Remove
                   </Button>
                 )}
               </div>
             ))}
-            <Button variant="secondary" onClick={handleAddAddress} className="mb-4">
-              Add Address
-            </Button>
+            <Button variant="secondary" onClick={addAddress} className="mb-4">Add Another Address</Button>
 
-            <br />
-
-            <Form.Label>Credit Card</Form.Label>
-            <Form.Group className="mb-3" controlId="cardNumber">
+            <h5 className="mt-3">Credit Card</h5>
+            <Form.Group className="mb-3">
               <Form.Label>Card Number</Form.Label>
               <Form.Control
-                type="text"
                 name="card_number"
                 value={formData.creditCard.card_number}
                 onChange={handleCreditCardChange}
@@ -209,24 +193,22 @@ function RegisterUser() {
                 required
               />
             </Form.Group>
-            <Form.Group className="mb-4" controlId="paymentAddress">
-              <Form.Label>Payment Address</Form.Label>
+            <Form.Group className="mb-4">
+              <Form.Label>Billing Address</Form.Label>
               <Form.Control
-                type="text"
                 name="address"
                 value={formData.creditCard.address}
                 onChange={handleCreditCardChange}
-                placeholder="Enter payment address"
+                placeholder="Enter billing address"
                 required
               />
             </Form.Group>
           </>
         )}
 
-        <Button variant="primary" type="submit" className="w-100">
-          Register
-        </Button>
+        <Button variant="primary" type="submit" className="w-100">Register</Button>
       </Form>
+
       <div className="text-center mt-3">
         <Link to="/" className="btn btn-outline-secondary">Back to Home</Link>
       </div>

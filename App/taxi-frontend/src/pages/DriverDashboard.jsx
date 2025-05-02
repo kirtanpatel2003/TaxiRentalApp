@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Button, Table, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Table, Alert, Card } from 'react-bootstrap';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 
@@ -52,46 +52,82 @@ function DriverDashboard() {
   };
 
   return (
-    <Container className="mt-4">
-      <h2>Welcome, {driverName}!</h2>
-      {message && <Alert variant="info">{message}</Alert>}
+    <Container className="mt-4 mb-5">
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <h2 className="text-primary">Welcome, {driverName}!</h2>
+          {message && <Alert variant="info" className="mt-3">{message}</Alert>}
 
-      {/* Address Update */}
-      <h5 className="mt-4">1. Update Your Address</h5>
-      <Form as={Row} className="mb-3">
-        <Col><Form.Control placeholder="Road Name" value={newAddress.road_name} onChange={(e) => setNewAddress({ ...newAddress, road_name: e.target.value })} /></Col>
-        <Col><Form.Control placeholder="Number" value={newAddress.number} onChange={(e) => setNewAddress({ ...newAddress, number: e.target.value })} /></Col>
-        <Col><Form.Control placeholder="City" value={newAddress.city} onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })} /></Col>
-        <Col xs="auto"><Button onClick={handleAddressChange}>Update</Button></Col>
-      </Form>
+          <h5 className="mt-4">1. Update Your Address</h5>
+          <Form as={Row} className="g-2 align-items-center mb-3">
+            <Col md={4}>
+              <Form.Control
+                placeholder="Road Name"
+                value={newAddress.road_name}
+                onChange={(e) => setNewAddress({ ...newAddress, road_name: e.target.value })}
+              />
+            </Col>
+            <Col md={2}>
+              <Form.Control
+                placeholder="Number"
+                value={newAddress.number}
+                onChange={(e) => setNewAddress({ ...newAddress, number: e.target.value })}
+              />
+            </Col>
+            <Col md={3}>
+              <Form.Control
+                placeholder="City"
+                value={newAddress.city}
+                onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+              />
+            </Col>
+            <Col xs="auto">
+              <Button variant="primary" onClick={handleAddressChange}>Update</Button>
+            </Col>
+          </Form>
+        </Card.Body>
+      </Card>
 
-      {/* List All Models */}
-      <h5 className="mt-5">2. All Car Models</h5>
-      <Table striped bordered>
-        <thead>
-          <tr><th>Brand</th><th>Color</th><th>Year</th><th>Transmission</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-          {models.map(model => (
-            <tr key={`${model.model_id}-${model.car_id}`}>
-              <td>{model.brand}</td>
-              <td>{model.color}</td>
-              <td>{model.year}</td>
-              <td>{model.transmission}</td>
-              <td>
-                <Button size="sm" onClick={() => setSelectedModel(model)}>Select</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <h5 className="mb-3 text-success">2. All Car Models</h5>
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Brand</th>
+                <th>Color</th>
+                <th>Year</th>
+                <th>Transmission</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {models.map(model => (
+                <tr key={`${model.model_id}-${model.car_id}`}>
+                  <td>{model.brand}</td>
+                  <td>{model.color}</td>
+                  <td>{model.year}</td>
+                  <td>{model.transmission}</td>
+                  <td>
+                    <Button size="sm" variant="outline-primary" onClick={() => setSelectedModel(model)}>Select</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Card.Body>
+      </Card>
 
-      {/* Declare CanDrive */}
       {selectedModel.model_id && (
-        <div className="mt-3">
-          <p>You selected: {selectedModel.brand} {selectedModel.year} ({selectedModel.transmission})</p>
-          <Button onClick={handleDeclareModel}>Add to Can Drive</Button>
-        </div>
+        <Card className="shadow-sm">
+          <Card.Body>
+            <h5 className="text-info">3. Confirm Model to Drive</h5>
+            <p>
+              You selected: <strong>{selectedModel.brand}</strong>, {selectedModel.year} ({selectedModel.transmission})
+            </p>
+            <Button variant="success" onClick={handleDeclareModel}>Add to Can Drive</Button>
+          </Card.Body>
+        </Card>
       )}
     </Container>
   );
