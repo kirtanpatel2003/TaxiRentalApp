@@ -115,4 +115,121 @@ router.post('/remove-driver', async (req, res) => {
   }
 });
 
+// GET /all-cars
+router.get('/all-cars', async (req, res) => {
+  try {
+    const result = await db.query('SELECT car_id, brand FROM car ORDER BY car_id');
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching cars:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// GET /all-models
+router.get('/all-models', async (req, res) => {
+  try {
+    const result = await db.query('SELECT model_id, color, transmission, year, car_id FROM model ORDER BY model_id');
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching models:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// GET /all-drivers
+router.get('/all-drivers', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT d.driver_id, d.name, CONCAT(a.road_name, ', ', a.number, ', ', a.city) AS address
+      FROM driver d
+      JOIN address a ON d.address_id = a.address_id
+      ORDER BY d.name
+    `);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching drivers:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+router.post('/data/top-k-clients', async (req, res) => {
+  const { k } = req.body;
+  try {
+    const result = await db.query(`
+      SELECT c.name, c.email
+      FROM client c
+      JOIN rent r ON c.client_id = r.client_id
+      GROUP BY c.client_id
+      ORDER BY COUNT(*) DESC
+      LIMIT $1
+    `, [k]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching top-k clients:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/data/car-model-usage', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT ca.brand, m.color, m.transmission, m.year, COUNT(r.rent_id) AS usageCount
+      FROM model m
+      JOIN car ca ON m.car_id = ca.car_id
+      LEFT JOIN rent r ON m.model_id = r.model_id AND m.car_id = r.car_id
+      GROUP BY ca.brand, m.color, m.transmission, m.year
+      ORDER BY usageCount DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching model usage:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/data/driver-performance', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT d.name, COUNT(r.rent_id) AS "tripsCompleted", 
+             COALESCE(ROUND(AVG(rv.rating)::numeric, 2), 0) AS rating
+      FROM driver d
+      LEFT JOIN rent r ON d.driver_id = r.driver_id
+      LEFT JOIN review rv ON d.driver_id = rv.driver_id
+      GROUP BY d.driver_id, d.name
+      ORDER BY COUNT(r.rent_id) DESC
+    `);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching driver performance:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /data/client-driver-city-match
+router.post('/data/client-driver-city-match', async (req, res) => {
+  const { clientCity, driverCity } = req.body;
+  if (!clientCity || !driverCity) {
+    return res.status(400).json({ message: 'Both client and driver cities are required.' });
+  }
+
+  try {
+    const result = await db.query(`
+      SELECT DISTINCT c.name AS client_name, c.email AS client_email
+      FROM client c
+      JOIN clientaddress ca ON c.client_id = ca.client_id
+      JOIN address a1 ON ca.address_id = a1.address_id
+      JOIN rent r ON c.client_id = r.client_id
+      JOIN driver d ON r.driver_id = d.driver_id
+      JOIN address a2 ON d.address_id = a2.address_id
+      WHERE a1.city = $1 AND a2.city = $2
+    `, [clientCity, driverCity]);
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error in client-driver city match:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 module.exports = router;
