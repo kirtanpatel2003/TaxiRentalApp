@@ -57,15 +57,12 @@ function ManagerDashboard({ name = "Manager" }) {
   const loadDrivers = async () => {
     try {
       const response = await axios.get('http://localhost:1303/api/all-drivers');
-      // Debug: Ensure driver_id is present in response
-      console.log('Drivers:', response.data);
-      setDriverPerformance(response.data); // reuse state for simplicity
+      setDriverPerformance(response.data);
     } catch (error) {
       alert('Failed to fetch drivers');
     }
   };
 
-  // Auto-load data for each section when its tab is selected
   useEffect(() => {
     if (selectedSection === 'Manage Cars') {
       loadCars();
@@ -426,7 +423,6 @@ function ManagerDashboard({ name = "Manager" }) {
       case 'Data Query':
         return (
           <div className="row">
-            {/* Results tables (left) */}
             <div className="col-md-8 pe-4">
               <div className="mb-4">
                 <h4 className="mt-0">Top-k Clients</h4>
@@ -525,7 +521,6 @@ function ManagerDashboard({ name = "Manager" }) {
                 )}
               </div>
             </div>
-            {/* Input forms (right) */}
             <div className="col-md-4 ps-md-4">
               <div className="card mb-4">
                 <div className="card-body">
