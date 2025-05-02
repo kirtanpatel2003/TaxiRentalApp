@@ -141,7 +141,7 @@ router.get('/all-models', async (req, res) => {
 router.get('/all-drivers', async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT d.name, CONCAT(a.road_name, ', ', a.number, ', ', a.city) AS address
+      SELECT d.driver_id, d.name, CONCAT(a.road_name, ', ', a.number, ', ', a.city) AS address
       FROM driver d
       JOIN address a ON d.address_id = a.address_id
       ORDER BY d.name
